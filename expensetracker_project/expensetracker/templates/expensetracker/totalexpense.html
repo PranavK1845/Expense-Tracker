@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Total Expenses</title>
+  <link rel="stylesheet" href="{% static 'expensetracker/style.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@400;600&family=Raleway:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <img src="{% static 'expensetracker/images/logo.png' %}" alt="Logo" class="logo">
+    <span class="title">Expense Tracker</span>
+  </div>
+</header>
+
+
+<div class="total-table">
+  <h2>Total Expenses ({{ period|title }})</h2>
+  
+  <div class="total-filter">
+    <label for="period">View Table By:</label>
+    <select id="period">
+      <option value="daily" {% if period == 'daily' %}selected{% endif %}>Daily</option>
+      <option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly</option>
+      <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option>
+      <option value="overall" {% if period == 'overall' %}selected{% endif %}>Overall</option>
+    </select>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Sr. No</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Description</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% if expenses %}
+        {% for exp in expenses %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ exp.category }}</td>
+            <td>{{ exp.amount }}</td>
+            <td>{{ exp.description }}</td>
+            <td>{{ exp.date }}</td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5">No expenses found.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="total-filter" style="margin-top: 15px;">
+    <label for="total-period">View Total By:</label>
+    <select id="total-period">
+      <option value="daily" {% if total_period == 'daily' %}selected{% endif %}>Daily</option>
+      <option value="weekly" {% if total_period == 'weekly' %}selected{% endif %}>Weekly</option>
+      <option value="monthly" {% if total_period == 'monthly' %}selected{% endif %}>Monthly</option>
+      <option value="yearly" {% if total_period == 'yearly' %}selected{% endif %}>Yearly</option>
+      <option value="overall" {% if total_period == 'overall' %}selected{% endif %}>Overall</option>
+    </select>
+  </div>
+
+  {% if total_overall %}
+      <p class="total-amount" style="margin-top: 10px; font-weight: bold;">
+          Total Amount: {{ total_overall }}
+      </p>
+
+  {% elif total_grouped %}
+      <h3 style="margin-top: 20px;">Grouped Totals</h3>
+
+      <table>
+          <thead>
+              <tr>
+                  <th>#</th>
+
+                  {% if total_period == 'daily' %}
+                      <th>Date</th>
+                  {% elif total_period == 'monthly' %}
+                      <th>Month</th>
+                  {% elif total_period == 'yearly' %}
+                      <th>Year</th>
+                  {% endif %}
+
+                  <th>Total Amount</th>
+              </tr>
+          </thead>
+
+          <tbody>
+              {% for item in total_grouped %}
+                  <tr>
+                      <td>{{ forloop.counter }}</td>
+
+                      {% if item.day %}
+                          <td>{{ item.day }}</td>
+                      {% elif item.month %}
+                          <td>{{ item.month }}</td>
+                      {% elif item.year %}
+                          <td>{{ item.year }}</td>
+                      {% endif %}
+
+                      <td>{{ item.total }}</td>
+                  </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+
+  {% endif %}
+
+
+
+  <div class="button-row" style="margin-top: 20px;">
+    <button type="button" id="homeBtn">Home</button>
+  </div>
+</div>
+
+
+<script>
+
+  function getUrlParts() {
+    const path = window.location.pathname.split('/').filter(Boolean);
+    return path; 
+  }
+
+  document.getElementById("period").addEventListener("change", function() {
+    const value = this.value;
+    let parts = getUrlParts();
+    let totalPeriod = parts[2] || 'overall';
+    window.location.href = `/total/${value}/${totalPeriod}/`;
+  });
+
+  document.getElementById("total-period").addEventListener("change", function() {
+    const value = this.value;
+    let parts = getUrlParts();
+    let tablePeriod = parts[1] || 'overall'; 
+    window.location.href = `/total/${tablePeriod}/${value}/`;
+  });
+
+  document.getElementById("homeBtn").addEventListener("click", function() {
+    window.location.href = "{% url 'index' %}";
+  });
+
+</script>
+
+</body>
+</html>
